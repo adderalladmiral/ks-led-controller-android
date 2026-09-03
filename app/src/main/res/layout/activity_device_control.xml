@@ -163,6 +163,16 @@
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/musicSyncButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/music_sync_start"
+            app:backgroundTint="@color/ks_accent"
+            android:textColor="@color/ks_background"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/nicknameButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

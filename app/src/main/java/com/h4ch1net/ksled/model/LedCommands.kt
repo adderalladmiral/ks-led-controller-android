@@ -33,6 +33,30 @@ object LedCommands {
     fun brightness(value: Int): ByteArray =
         hexToBytes("5A000200000000" + hex2(value) + "00A5")
 
+    /**
+     * Rhythm/mic-reactive mode select command, reverse-engineered from the
+     * Keepsmile KS03~ protocol (device spoofing via ESP32):
+     *   5A 0A [mic_type] [type] [speed] 01 A5
+     * mic_type: 0x0F = phone mic, 0xF0 = device's own built-in mic
+     * type: 1-4 (reactive pattern variant)
+     * speed: 1 (fastest) - 8 (slowest)
+     *
+     * Selecting MicSource.PHONE puts the light into "listen for colors pushed
+     * by the app" mode; the app is then expected to stream ColorCustom_t
+     * (see LedCommands.color()) frames repeatedly, which is what
+     * MicAnalyzer + the music-sync loop in DeviceControlActivity do.
+     */
+    enum class MicSource(val byte: Int) { PHONE(0x0F), DEVICE(0xF0) }
+
+    fun rhythm(source: MicSource, type: Int = 1, speed: Int = 4): ByteArray {
+        val cmdStr = "5A0A" +
+            hex2(source.byte) +
+            hex2(type.coerceIn(1, 4)) +
+            hex2(speed.coerceIn(1, 8)) +
+            "01A5"
+        return hexToBytes(cmdStr)
+    }
+
     private fun hex2(v: Int): String = String.format("%02X", v.coerceIn(0, 255))
 
     private fun hexToBytes(hex: String): ByteArray {

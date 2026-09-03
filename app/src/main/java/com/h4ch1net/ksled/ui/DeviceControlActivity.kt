@@ -1,20 +1,25 @@
 package com.h4ch1net.ksled.ui
 
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.textfield.TextInputEditText
 import com.h4ch1net.ksled.R
+import com.h4ch1net.ksled.audio.MicAnalyzer
 import com.h4ch1net.ksled.ble.LedGattClient
 import com.h4ch1net.ksled.data.NicknameStore
 import com.h4ch1net.ksled.data.PresetStore
@@ -25,7 +30,12 @@ import com.h4ch1net.ksled.model.ColorPreset
 import com.h4ch1net.ksled.model.DeviceProfile
 import com.h4ch1net.ksled.model.LampFamily
 import com.h4ch1net.ksled.model.LedCommands
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Ports the interactive menu loop from led_menu.py (print_menu / color_preset_menu /
@@ -49,6 +59,22 @@ class DeviceControlActivity : AppCompatActivity() {
     private lateinit var advertisedName: String
     private var currentRgb = Triple(255, 147, 41) // defaults to Warm White like Python's initial state
     private var currentBrightness = 255
+
+    private val micAnalyzer = MicAnalyzer()
+    private var musicSyncJob: Job? = null
+    private var micGattClient: LedGattClient? = null
+    private var pendingMusicSyncStart = false
+
+    private val requestMicPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            if (pendingMusicSyncStart) startMusicSync()
+        } else {
+            Toast.makeText(this, getString(R.string.mic_permission_denied), Toast.LENGTH_LONG).show()
+        }
+        pendingMusicSyncStart = false
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,6 +130,113 @@ class DeviceControlActivity : AppCompatActivity() {
         binding.brightness50.setOnClickListener { sendBrightness(128) }
         binding.brightness75.setOnClickListener { sendBrightness(192) }
         binding.brightness100.setOnClickListener { sendBrightness(255) }
+
+        binding.musicSyncButton.setOnClickListener { toggleMusicSync() }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopMusicSync()
+    }
+
+    // ---- Music sync (phone-mic reactive lighting) ----
+
+    private fun toggleMusicSync() {
+        if (musicSyncJob != null) {
+            stopMusicSync()
+            return
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            pendingMusicSyncStart = true
+            requestMicPermission.launch(Manifest.permission.RECORD_AUDIO)
+            return
+        }
+        startMusicSync()
+    }
+
+    private fun startMusicSync() {
+        appendLog(getString(R.string.music_sync_starting))
+        binding.musicSyncButton.text = getString(R.string.music_sync_stop)
+
+        musicSyncJob = lifecycleScope.launch {
+            val client = LedGattClient(this@DeviceControlActivity)
+            micGattClient = client
+
+            when (val openResult = client.openSession(bluetoothDevice(), profile)) {
+                is LedGattClient.Result.Failure -> {
+                    appendLog(getString(R.string.music_sync_connect_failed) + ": ${openResult.message}")
+                    resetMusicSyncUi()
+                    return@launch
+                }
+                is LedGattClient.Result.Success -> openResult.log.forEach(::appendLog)
+            }
+
+            val session = client.activeSession()
+            if (session == null) {
+                appendLog(getString(R.string.music_sync_connect_failed))
+                resetMusicSyncUi()
+                return@launch
+            }
+
+            // Put the light into "listen for app-pushed colors" mode.
+            session.send(LedCommands.rhythm(LedCommands.MicSource.PHONE))
+
+            val started = withContext(Dispatchers.IO) { micAnalyzer.start() }
+            if (!started) {
+                appendLog(getString(R.string.music_sync_mic_failed))
+                client.closeSession()
+                resetMusicSyncUi()
+                return@launch
+            }
+
+            appendLog(getString(R.string.music_sync_running))
+
+            try {
+                while (isActive) {
+                    val frame = withContext(Dispatchers.IO) { micAnalyzer.readFrame() }
+                    if (frame != null) {
+                        val (r, g, b) = frameToRgb(frame)
+                        val brightness = (80 + frame.volume * 175).toInt().coerceIn(0, 255)
+                        val payload = LedCommands.color(r, g, b, profile.family, brightness)
+                        session.send(payload)
+                        withContext(Dispatchers.Main) {
+                            binding.colorPreview.setBackgroundColor(Color.rgb(r, g, b))
+                        }
+                    }
+                    // Throttle writes to a safe BLE rate (~12/sec) rather than flooding
+                    // the stack at raw chunk-read speed.
+                    delay(80)
+                }
+            } finally {
+                withContext(Dispatchers.IO) { micAnalyzer.stop() }
+                client.closeSession()
+            }
+        }
+    }
+
+    /** Bass -> red, mid -> green, treble -> blue; volume drives overall intensity/brightness. */
+    private fun frameToRgb(frame: MicAnalyzer.AudioFrame): Triple<Int, Int, Int> {
+        val r = (frame.bass * 255).toInt().coerceIn(0, 255)
+        val g = (frame.mid * 255).toInt().coerceIn(0, 255)
+        val b = (frame.treble * 255).toInt().coerceIn(0, 255)
+        // Guarantee some visible color even during quiet passages.
+        return if (r + g + b < 30) Triple(20, 20, 20) else Triple(r, g, b)
+    }
+
+    private fun stopMusicSync() {
+        musicSyncJob?.cancel()
+        musicSyncJob = null
+        micGattClient?.closeSession()
+        micGattClient = null
+        micAnalyzer.stop()
+        resetMusicSyncUi()
+    }
+
+    private fun resetMusicSyncUi() {
+        binding.musicSyncButton.text = getString(R.string.music_sync_start)
+        musicSyncJob = null
     }
 
     private fun renderTitle() {

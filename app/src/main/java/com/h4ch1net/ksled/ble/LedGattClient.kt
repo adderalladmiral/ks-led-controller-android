@@ -36,6 +36,92 @@ class LedGattClient(private val context: Context) {
     private val log = mutableListOf<String>()
     private fun logLine(s: String) { log.add(s) }
 
+    /**
+     * A long-lived GATT connection for streaming many fast writes (e.g. mic-reactive
+     * color updates) without paying the connect/discover/disconnect cost per frame,
+     * which writeSequence() incurs by design for one-off commands.
+     */
+    inner class Session internal constructor(
+        private val gatt: BluetoothGatt,
+        private val profile: DeviceProfile
+    ) {
+        private var closed = false
+
+        /** Fire-and-forget style write; returns false if the write couldn't be queued. */
+        suspend fun send(payload: ByteArray): Boolean {
+            if (closed) return false
+            return writeWithFallback(gatt, profile, payload)
+        }
+
+        @SuppressLint("MissingPermission")
+        fun close() {
+            if (closed) return
+            closed = true
+            safeDisconnect(gatt)
+        }
+    }
+
+    /**
+     * Opens a persistent connection for streaming writes. Caller is responsible for
+     * calling Session.close() when done (e.g. when music sync is toggled off or the
+     * screen is destroyed).
+     */
+    @SuppressLint("MissingPermission")
+    suspend fun openSession(device: BluetoothDevice, profile: DeviceProfile): Result {
+        log.clear()
+        val connected = CompletableDeferred<Boolean>()
+        val servicesReady = CompletableDeferred<Boolean>()
+        var gatt: BluetoothGatt? = null
+
+        val callback = object : BluetoothGattCallback() {
+            override fun onConnectionStateChange(g: BluetoothGatt, status: Int, newState: Int) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    logLine("Connected to ${device.address}")
+                    if (!connected.isCompleted) connected.complete(true)
+                    g.discoverServices()
+                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    logLine("Disconnected")
+                    if (!connected.isCompleted) connected.complete(false)
+                }
+            }
+
+            override fun onServicesDiscovered(g: BluetoothGatt, status: Int) {
+                if (!servicesReady.isCompleted) servicesReady.complete(status == BluetoothGatt.GATT_SUCCESS)
+            }
+        }
+
+        gatt = device.connectGatt(context, false, callback)
+
+        val didConnect = withTimeoutOrNull(10_000) { connected.await() } ?: false
+        if (!didConnect) {
+            logLine("Failed to connect (timeout)")
+            gatt.close()
+            return Result.Failure("Failed to connect to device", log.toList())
+        }
+
+        delay(300)
+
+        val discovered = withTimeoutOrNull(8_000) { servicesReady.await() } ?: false
+        if (!discovered) {
+            logLine("Service discovery failed/timed out")
+            safeDisconnect(gatt)
+            return Result.Failure("Service discovery failed", log.toList())
+        }
+
+        sessionHolder = Session(gatt, profile)
+        return Result.Success(log.toList())
+    }
+
+    private var sessionHolder: Session? = null
+
+    /** Returns the currently open session, if any (set by openSession). */
+    fun activeSession(): Session? = sessionHolder
+
+    fun closeSession() {
+        sessionHolder?.close()
+        sessionHolder = null
+    }
+
     @SuppressLint("MissingPermission")
     suspend fun writeSequence(
         device: BluetoothDevice,

@@ -17,6 +17,13 @@
     <string name="control_custom">Custom Color</string>
     <string name="control_brightness">Brightness</string>
     <string name="control_nickname">Nickname</string>
+    <string name="music_sync_start">Start Music Sync (Mic)</string>
+    <string name="music_sync_stop">Stop Music Sync</string>
+    <string name="music_sync_starting">Connecting for music sync…</string>
+    <string name="music_sync_running">Music sync running</string>
+    <string name="music_sync_connect_failed">Music sync connect failed</string>
+    <string name="music_sync_mic_failed">Could not start microphone</string>
+    <string name="mic_permission_denied">Microphone permission is required for music sync</string>
     <string name="control_manage_presets">Manage Presets</string>
     <string name="control_connecting">Connecting…</string>
     <string name="control_sending">Sending…</string>
