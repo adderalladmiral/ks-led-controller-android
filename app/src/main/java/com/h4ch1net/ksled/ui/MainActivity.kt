@@ -124,6 +124,13 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, "Scan failed ($errorCode)", Toast.LENGTH_SHORT).show()
                 }
             }
+
+            override fun onUnmatchedDevice(address: String, name: String?, rssi: Int) {
+                // Surfaced so you can see the raw advertised name of nearby BLE
+                // devices that don't match a known KS prefix - useful when a
+                // real device isn't showing up in the list.
+                android.util.Log.d("BleScanner", "Unmatched device: ${name ?: "(no name)"} [$address] rssi=$rssi")
+            }
         })
     }
 

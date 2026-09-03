@@ -22,6 +22,7 @@ class BleScanner(private val adapter: BluetoothAdapter) {
         fun onScanStarted()
         fun onScanStopped()
         fun onScanFailed(errorCode: Int)
+        fun onUnmatchedDevice(address: String, name: String?, rssi: Int) {}
     }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -32,12 +33,28 @@ class BleScanner(private val adapter: BluetoothAdapter) {
     private val callback = object : ScanCallback() {
         @SuppressLint("MissingPermission")
         override fun onScanResult(callbackType: Int, result: ScanResult) {
-            val name = result.scanRecord?.deviceName ?: result.device.name ?: return
-            val profile = DeviceProfile.matchByName(name) ?: return
+            // Prefer the name parsed directly out of the advertisement packet.
+            // result.device.name relies on the OS's cached GATT device record,
+            // which can be null/stale until the phone has connected to the
+            // device at least once - scanRecord.deviceName is what's actually
+            // being broadcast right now and is what native scanners key off.
+            val rawName = (result.scanRecord?.deviceName ?: result.device.name)?.trim()
             val address = result.device.address
+
+            if (rawName.isNullOrEmpty()) {
+                listener?.onUnmatchedDevice(address, rawName, result.rssi)
+                return
+            }
+
+            val profile = DeviceProfile.matchByName(rawName)
+            if (profile == null) {
+                listener?.onUnmatchedDevice(address, rawName, result.rssi)
+                return
+            }
+
             if (seenAddresses.add(address)) {
                 listener?.onDeviceFound(
-                    ScannedDevice(address, name, profile, result.rssi)
+                    ScannedDevice(address, rawName, profile, result.rssi)
                 )
             }
         }
@@ -58,6 +75,7 @@ class BleScanner(private val adapter: BluetoothAdapter) {
         }
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+            .setReportDelay(0)
             .build()
         scanning = true
         listener.onScanStarted()

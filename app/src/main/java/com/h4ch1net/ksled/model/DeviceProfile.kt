@@ -50,11 +50,12 @@ data class DeviceProfile(
             else -> null
         }
 
-        /** Longest-prefix match against a scanned device's advertised name. */
+        /** Longest-prefix match against a scanned device's advertised name. Case-insensitive. */
         fun matchByName(name: String?): DeviceProfile? {
             if (name.isNullOrEmpty()) return null
+            val upper = name.uppercase()
             return PROFILES
-                .filter { name.startsWith(it.prefix) }
+                .filter { upper.startsWith(it.prefix.uppercase()) }
                 .maxByOrNull { it.prefix.length }
         }
 
