@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <View
+        android:id="@+id/dialogPreview"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/ks_accent"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/rgb_red"
+        android:textColor="@color/ks_danger" />
+    <SeekBar
+        android:id="@+id/redSeek"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="255" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/rgb_green"
+        android:textColor="@color/ks_success" />
+    <SeekBar
+        android:id="@+id/greenSeek"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="255" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/rgb_blue"
+        android:textColor="@color/ks_accent" />
+    <SeekBar
+        android:id="@+id/blueSeek"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="255" />
+
+    <TextView
+        android:id="@+id/rgbValueText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/ks_text_secondary"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/presetNameInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/preset_name_hint"
+        android:textColor="@color/ks_text_primary"
+        android:visibility="gone" />
+
+</LinearLayout>

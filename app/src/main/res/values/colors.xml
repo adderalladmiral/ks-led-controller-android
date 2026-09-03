@@ -1,0 +1,11 @@
+<resources>
+    <color name="ks_background">#0F1115</color>
+    <color name="ks_surface">#1B1E24</color>
+    <color name="ks_accent">#00E5B8</color>
+    <color name="ks_accent_dim">#0AA98A</color>
+    <color name="ks_text_primary">#F5F7FA</color>
+    <color name="ks_text_secondary">#9AA3AF</color>
+    <color name="ks_danger">#FF5C5C</color>
+    <color name="ks_success">#4CD97B</color>
+    <color name="ks_warning">#FFC145</color>
+</resources>

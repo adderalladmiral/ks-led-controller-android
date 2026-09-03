@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="10dp">
+
+    <View
+        android:id="@+id/swatch"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:background="@color/ks_accent"
+        android:layout_marginEnd="12dp" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@color/ks_text_primary" />
+
+    <TextView
+        android:id="@+id/deleteAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/delete"
+        android:textColor="@color/ks_danger"
+        android:padding="8dp" />
+
+</LinearLayout>
