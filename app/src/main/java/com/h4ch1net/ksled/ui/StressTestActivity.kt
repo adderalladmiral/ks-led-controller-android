@@ -15,6 +15,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
 
 /**
  * Isolated write-rate stress test screen for a single already-selected device.
@@ -145,7 +146,7 @@ class StressTestActivity : AppCompatActivity() {
 
         binding.stressTxtCurrentRate.text = "Current target rate: $currentRateHz writes/sec"
 
-        while (isActive) {
+        while (coroutineContext.isActive) {
             toggle = !toggle
             val payload = if (toggle)
                 LedCommands.color(100, 0, 0, profile.family)
