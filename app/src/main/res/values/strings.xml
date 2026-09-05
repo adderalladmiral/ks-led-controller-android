@@ -53,4 +53,16 @@
     <string name="brightness_100">100%%</string>
 
     <string name="verbose_log">Connection log</string>
+
+    <string name="control_stress_test">Stress Test</string>
+    <string name="stress_not_connected">Not connected</string>
+    <string name="stress_explainer">Opens one live connection and streams alternating red/blue color frames as fast as possible, ramping the target rate up every few seconds. Reports the write rate at which the connection drops or writes start failing. This tests what the BLE stack accepts, not whether the light visibly renders every frame (writes use no-response mode, which has no acknowledgement from the device).</string>
+    <string name="stress_start_rate_default">Start rate: 5 writes/sec</string>
+    <string name="stress_ramp_step_default">Ramp step: +5 writes/sec every 2s</string>
+    <string name="stress_start">Start Stress Test</string>
+    <string name="stress_stop">Stop Stress Test</string>
+    <string name="stress_current_rate_placeholder">Current target rate: —</string>
+    <string name="stress_stats_placeholder">Sent: 0   Accepted: 0   Rejected: 0</string>
+    <string name="stress_connect_failed">Connect failed</string>
+    <string name="stress_connecting">Connecting…</string>
 </resources>

@@ -49,6 +49,11 @@
             android:exported="false"
             android:parentActivityName=".ui.MainActivity" />
 
+        <activity
+            android:name=".ui.StressTestActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.DeviceControlActivity" />
+
     </application>
 
 </manifest>

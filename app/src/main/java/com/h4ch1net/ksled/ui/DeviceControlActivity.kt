@@ -132,6 +132,7 @@ class DeviceControlActivity : AppCompatActivity() {
         binding.brightness100.setOnClickListener { sendBrightness(255) }
 
         binding.musicSyncButton.setOnClickListener { toggleMusicSync() }
+        binding.stressTestButton.setOnClickListener { launchStressTest() }
     }
 
     override fun onDestroy() {
@@ -316,6 +317,18 @@ class DeviceControlActivity : AppCompatActivity() {
                 Toast.makeText(this, "${getString(R.string.control_failed)}: ${result.message}", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun launchStressTest() {
+        // Stop any in-flight music sync first — both features hold a live GATT
+        // session, and the device only accepts one connection at a time.
+        stopMusicSync()
+        val intent = android.content.Intent(this, StressTestActivity::class.java).apply {
+            putExtra(StressTestActivity.EXTRA_ADDRESS, address)
+            putExtra(StressTestActivity.EXTRA_NAME, advertisedName)
+            putExtra(StressTestActivity.EXTRA_PREFIX, profile.prefix)
+        }
+        startActivity(intent)
     }
 
     /** Ports custom_color_menu(): live RGB sliders + preview + optional "save as preset". */

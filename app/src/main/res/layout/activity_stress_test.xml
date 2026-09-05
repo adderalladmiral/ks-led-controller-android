@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ks_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/stressDeviceTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ks_text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/stressConnState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/ks_text_secondary"
+            android:textStyle="bold"
+            android:text="@string/stress_not_connected" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:textColor="@color/ks_text_secondary"
+            android:textSize="11sp"
+            android:text="@string/stress_explainer" />
+
+        <TextView
+            android:id="@+id/stressLblStartRate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ks_text_primary"
+            android:text="@string/stress_start_rate_default" />
+        <SeekBar
+            android:id="@+id/stressSeekStartRate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="95"
+            android:progress="0" />
+
+        <TextView
+            android:id="@+id/stressLblRampStep"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/ks_text_primary"
+            android:text="@string/stress_ramp_step_default" />
+        <SeekBar
+            android:id="@+id/stressSeekRampStep"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="45"
+            android:progress="4" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stressBtnStartStop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/stress_start"
+            app:backgroundTint="@color/ks_accent"
+            android:textColor="@color/ks_background"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/ks_surface" />
+
+        <TextView
+            android:id="@+id/stressTxtCurrentRate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ks_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:text="@string/stress_current_rate_placeholder" />
+
+        <TextView
+            android:id="@+id/stressTxtStats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/ks_text_secondary"
+            android:textSize="13sp"
+            android:text="@string/stress_stats_placeholder" />
+
+        <TextView
+            android:id="@+id/stressTxtResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/ks_danger"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:text="" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/ks_text_secondary"
+            android:textStyle="bold"
+            android:text="@string/verbose_log" />
+
+        <TextView
+            android:id="@+id/stressTxtLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="monospace"
+            android:textSize="11sp"
+            android:textColor="@color/ks_text_secondary"
+            android:background="@color/ks_surface"
+            android:padding="8dp"
+            android:minLines="3" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

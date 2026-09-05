@@ -181,6 +181,15 @@
             android:textColor="@color/ks_text_primary"
             android:layout_marginBottom="16dp" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/stressTestButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/control_stress_test"
+            app:backgroundTint="@color/ks_surface"
+            android:textColor="@color/ks_text_secondary"
+            android:layout_marginBottom="16dp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
